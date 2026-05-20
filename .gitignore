@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local checkpoint dir + weight files (users should keep weights outside the repo)
+ckpts/
+*.safetensors
+*.pt
+*.pth
