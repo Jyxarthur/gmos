@@ -14,7 +14,10 @@ import torch
 import tqdm
 
 from . import prop_config as config
-from .prop_utils import suppress_tqdm, compute_iou, compute_precision, batch_hungarian_match, get_torch_hard_max
+from .prop_utils import (
+    suppress_tqdm, compute_iou, compute_precision, batch_hungarian_match,
+    get_torch_hard_max, get_torch_priority_hard_max,
+)
 
 
 def _compute_motion_labels(out_mask_logits, pred_motion_mask, pred_masks, pred_motions, n_pred):
@@ -169,16 +172,28 @@ def propagate(predictor, all_pred_masks, all_motions, all_ious, all_pred_motion_
 
 
 def reduce_propagate(all_pred_masks, all_motions, all_pred_motion_masks,
-                     generator, video_results, ranges, inference_state, device=None):
+                     generator, video_results, ranges, inference_state, device=None,
+                     prompt_counts=None):
     """
     Stage 2 propagation — no prompt injection, just mask propagation and motion scoring.
+
+    Overlapping SAM2 object masks are resolved by priority rather than per-pixel
+    logit value: each object's logits are thresholded at 0, then contested pixels
+    are assigned to the object with the larger `prompt_counts` value (ties broken
+    by lower obj_id). `prompt_counts` maps obj_id -> number of prompts seeded for
+    that object in stage 2.
     """
     dev = device if device is not None else torch.device("cuda")
+    prompt_counts = prompt_counts or {}
     for out_frame_idx in tqdm.tqdm(range(ranges[0], ranges[1], ranges[2]), total=abs(ranges[1] - ranges[0])):
         with suppress_tqdm():
             _, out_obj_ids, out_mask_logits = next(generator)
 
-        out_mask_logits = get_torch_hard_max(out_mask_logits.transpose(0, 1)).transpose(0, 1)
+        # Priority by prompt count, indexed in the same order as out_obj_ids.
+        priority = [prompt_counts.get(oid, 0) for oid in out_obj_ids]
+        out_mask_logits = get_torch_priority_hard_max(
+            out_mask_logits.transpose(0, 1), priority, threshold=0.0,
+        ).transpose(0, 1)
         pred_motion_mask = torch.tensor(all_pred_motion_masks[out_frame_idx]).to(dev)
 
         pred_masks = torch.tensor(all_pred_masks[out_frame_idx]).to(dev)

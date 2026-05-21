@@ -384,6 +384,12 @@ def run_propagator(predictor, video_path, frames_shape, prop_inputs, device,
                 continue
             prompt_set[(frame_idx, obj_idx)] = full_segments[frame_idx, obj_idx]
 
+    # Per-object prompt count: prop 2 prioritises objects with more stage-2
+    # prompts when resolving overlapping masks (see reduce_propagate).
+    prompt_counts = {}
+    for (_, obj) in prompt_set:
+        prompt_counts[obj] = prompt_counts.get(obj, 0) + 1
+
     for (t, obj), mask in prompt_set.items():
         predictor.add_new_mask(
             inference_state=inference_state, frame_idx=t, obj_id=obj, mask=mask,
@@ -401,6 +407,7 @@ def run_propagator(predictor, video_path, frames_shape, prop_inputs, device,
     video_results_off, generator, inference_state = reduce_propagate(
         all_pred_masks, all_motions, all_pred_motion_masks,
         generator, video_results_off, (off_start_frame, total_num_frames, 1), inference_state, device=device,
+        prompt_counts=prompt_counts,
     )
     if off_start_frame > 0:
         generator.close()
@@ -410,6 +417,7 @@ def run_propagator(predictor, video_path, frames_shape, prop_inputs, device,
         video_results_off, generator, inference_state = reduce_propagate(
             all_pred_masks, all_motions, all_pred_motion_masks,
             generator, video_results_off, (off_start_frame, -1, -1), inference_state, device=device,
+            prompt_counts=prompt_counts,
         )
 
     motions = form_result_array(video_results_off["motions"], np.zeros((total_num_frames, 10, 1)), total_num_frames)[:, :, 0]

@@ -120,6 +120,38 @@ def get_torch_hard_max(mask, threshold=-1):
     return one_hot.to(mask.dtype) * confident_pixels.to(mask.dtype)
 
 
+def get_torch_priority_hard_max(mask, priority, threshold=0.0):
+    """Mutually-exclusive one-hot resolved by object priority instead of logit value.
+
+    Unlike `get_torch_hard_max` (per-pixel argmax over the channel value), this
+    first thresholds each object's logits independently to obtain boolean masks,
+    then resolves overlapping pixels by `priority`: the object with the larger
+    priority value is painted on top (wins the pixel). Channels with no priority
+    entry default to priority 0.
+
+    Args:
+        mask:      [B, C, H, W] per-object soft logits.
+        priority:  1-D sequence/tensor of length C; higher = painted on top.
+                   Pixels are assigned to argmax(priority) among the objects
+                   whose logit exceeds `threshold` at that pixel.
+        threshold: logit threshold for an object to be "present" at a pixel.
+
+    Returns:
+        [B, C, H, W] one-hot (at most one channel set per pixel), same dtype as mask.
+    """
+    B, C, H, W = mask.shape
+    present = mask > threshold                               # [B, C, H, W] bool
+    prio = torch.as_tensor(priority, device=mask.device, dtype=torch.float32)
+    # Score each present object by its priority; absent objects get -inf so they
+    # never win. argmax over channel then picks the highest-priority present obj.
+    scored = torch.where(present, prio.view(1, C, 1, 1).expand(B, C, H, W),
+                         torch.full_like(mask, float("-inf"), dtype=torch.float32))
+    any_present = present.any(dim=1)                         # [B, H, W]
+    argmax_result = scored.argmax(dim=1)                     # [B, H, W]; ties -> lowest index
+    one_hot = F.one_hot(argmax_result, num_classes=C).permute(0, 3, 1, 2)
+    return one_hot.to(mask.dtype) * any_present.unsqueeze(1).to(mask.dtype)
+
+
 def form_result_array(video_result_dict, zero_info, total_num_frames):
     """Fill a pre-allocated array from a sparse {frame_idx: {obj_idx: value}} dict."""
     for frame_idx in range(total_num_frames):
