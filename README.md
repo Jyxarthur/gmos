@@ -138,7 +138,7 @@ Add `--frame_level_match` to also report the frame-level Hungarian match.
 @article{xie2026gmos,
     title     = {GMOS: Grounding Moving Object Segmentation in 3D Space and Time},
     author    = {Junyu Xie and Tengda Han and Weidi Xie and Andrew Zisserman},
-    journal   = {arXiv preprint arXiv:xxxx.xxxxx},
+    journal   = {arXiv preprint arXiv:2605.30352},
     year      = {2026}
 }
 ```
