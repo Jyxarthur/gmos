@@ -4,8 +4,8 @@ Junyu Xie, Tengda Han, Weidi Xie, Andrew Zisserman
 
 Visual Geometry Group, Department of Engineering Science, University of Oxford
 
-<a src="https://img.shields.io/badge/cs.CV-xxxx.xxxxx-b31b1b?logo=arxiv&logoColor=red" href="https://arxiv.org/abs/xxxx.xxxxx">
-<img src="https://img.shields.io/badge/cs.CV-xxxx.xxxxx-b31b1b?logo=arxiv&logoColor=red"></a>
+<a src="https://img.shields.io/badge/cs.CV-2605.30352-b31b1b?logo=arxiv&logoColor=red" href="https://arxiv.org/abs/2605.30352">
+<img src="https://img.shields.io/badge/cs.CV-2605.30352-b31b1b?logo=arxiv&logoColor=red"></a>
 <a href="https://www.robots.ox.ac.uk/~vgg/research/gmos/" alt="Project page">
 <img alt="Project page" src="https://img.shields.io/badge/project_page-gmos-blue"></a>
 
