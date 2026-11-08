@@ -135,11 +135,11 @@ Add `--frame_level_match` to also report the frame-level Hungarian match.
 ## Citation
 
 ```bibtex
-@article{xie2026gmos,
-    title     = {GMOS: Grounding Moving Object Segmentation in 3D Space and Time},
-    author    = {Junyu Xie and Tengda Han and Weidi Xie and Andrew Zisserman},
-    journal   = {arXiv preprint arXiv:2605.30352},
-    year      = {2026}
+@InProceedings{xie2026gmos,
+  title={Grounding Moving Object Segmentation in 3D Space and Time},
+  author={Xie, Junyu and Han, Tengda and Xie, Weidi and Zisserman, Andrew},
+  booktitle={NeurIPS},
+  year={2026}
 }
 ```
 
